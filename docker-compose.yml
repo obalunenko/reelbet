@@ -1,0 +1,63 @@
+version: "3.7"
+services:
+  pgadmin:
+    restart: unless-stopped
+    container_name: pgadmin
+    image: dpage/pgadmin4
+    networks:
+      - reelbet_dev
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL:-pgadmin4@pgadmin.org}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD:-admin}
+    ports:
+      - "${PGADMIN_PORT:-5050}:80"
+    depends_on:
+      - postgres
+    volumes:
+      - pgadmin:/root/.pgadmin
+
+  postgres:
+    restart: unless-stopped
+    container_name: postgres
+    image: postgres
+    networks:
+      - reelbet_dev
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-pwd}
+      POSTGRES_DB: ${POSTGRES_DB:-reelbet}
+      PGDATA: /data/postgres
+    ports:
+      - "5432:5432"
+    expose:
+      - "5432"
+    volumes:
+      - postgres:/data/postgres
+
+  reelbet:
+    restart: unless-stopped
+    container_name: reelbet
+    networks:
+      - reelbet_dev
+    image: olegbalunenko/reelbet
+    environment:
+
+    ports:
+      - "8080:8080"
+    expose:
+      - "8080"
+    depends_on:
+      - postgres
+
+volumes:
+  postgres:
+    driver: local
+  pgadmin:
+    driver: local
+  logs:
+    driver: local
+
+
+networks:
+  reelbet_dev:
+    driver: bridge
